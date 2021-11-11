@@ -1,0 +1,326 @@
+openapi: '3.0.2'
+info:
+  title: OnStar Adapter- Door Service
+  description: |
+    APIs are exposed to send request for Door Lock/ Un-lock for MY24/ BEV3 Platform
+     [Version History]:
+
+     * Vijesh M P : Initial version
+  
+     
+  version: 0.0.1
+
+
+servers:
+  - url: https://ws-qa2.hondaweb.com/REST/NGT/ODS
+    description: QA Environment
+
+  - url: https://ws-dev.hondaweb.com/REST/NGT/ODS
+    description: Prestage Environment
+
+  - url: https://ws-stage.hondaweb.com/REST/NGT/ODS
+    description: Stage Environment
+
+  - url: https://ws-qa.hondaweb.com/REST/NGT/ODS
+    description: UAT Environment
+
+  - url: https://ws.hondaweb.com/REST/NGT/ODS
+    description: Production Environment
+
+tags:
+  - name: Door Service 
+    description: API used send door lock/ unlock command to GMBO 
+
+
+components:
+  schemas:
+    #BasicSynchronousErrorModel
+    #################################
+    BasicSynchronousErrorModel:
+      type: object
+      description: |
+        The basic error model for synchronous response
+
+        Please check the detail info about the error codes & messages:
+        * [HNA NGT Error Codes Messages](https://ws.hondaweb.com/REST/HNA/APIDefS/????.xls)
+      required:
+        - status
+        - responseBody
+      properties:
+        status:
+          type: string
+          example: "failure"
+        responseBody:
+          type: object
+          required:
+            - errorCode
+            - errorMessage
+          properties:
+            errorCode:
+              type: string
+              minLength: 12
+              maxLength: 12
+              example: "XXXX-XX-XXXX"
+            errorMessage:
+              type: string
+              example: ""
+    #################################
+    EmptySuccessResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          example: "success"
+        responseBody:
+          type: object
+    ########################
+    DeviceRequestBody:
+      type: object
+      required:
+        - vin
+      properties:
+        vin:
+          type: string
+          description: String should be a VIN with 17 characters and valid Honda or Acura VIN
+          minLength: 17
+          maxLength: 17
+          example : "5FNRL6H9XHB101292"
+    ##########################
+      
+  #################################
+  parameters:
+    #################################
+    # Content-Type && Accept
+    #################################
+    Accept:
+      name: Accept
+      in: header
+      required: true
+      schema:
+        type: string
+        default: application/json
+    Content-Type:
+      name: Content-Type
+      in: header
+      required: true
+      schema:
+        type: string
+        default: application/json
+    
+    command:    
+      in: path
+      name: command
+      required: true
+      description: |
+            * lockDoor: Used to send lock door command
+            * unlockDoor: used to send unlock door command
+            * 
+      schema:
+            type: string
+            example: "[  lockDoor | unlockDoor]"
+          
+    #################################
+    # Honda common header
+    #################################
+    Authorization:
+      name: Authorization
+      in: header
+      required: false
+      description: |
+        * Required for Mobile
+      schema:
+        type: string
+      example: "Bearer c2VyhnljZV9uZ3RfY2JvX3FhOkVqZDc5aU1wTm1uYzdD"
+    hondaHeaderType.version:
+      name: hondaHeaderType.version
+      in: header
+      required: true
+      description: api version
+      schema:
+        type: string
+        example: 1.0
+    hondaHeaderType.userId:
+      name: hondaHeaderType.userId
+      in: header
+      description: Honda HIDAS Identity
+      schema:
+        type: string
+        example: "USA001dbeea544a30349b2a0badaadcc71ac98"
+    hondaHeaderType.messageId:
+      name: hondaHeaderType.messageId
+      in: header
+      required: true
+      description: UUID (perfered format RFC4122 Version 4) for each API call, HNA internal tracking purpose.
+      schema:
+        type: string
+        minLength: 36
+        maxLength: 36
+        example: "874264d0-1574-4416-830b-0ca34b8e6d55"
+    hondaHeaderType.siteId:
+      name: hondaHeaderType.siteId
+      in: header
+      required: true
+      description: |
+        Trading Partner/Application Site ID
+
+        * for SXM, the value is siriusxm.com
+        * for hondalink(android, ios, web), the value is 18d216af12884813987e6b7f75a005a1
+      schema:
+        type: string
+        example: "siriusxm.com"
+    hondaHeaderType.businessId:
+      name: hondaHeaderType.businessId
+      in: header
+      required: true
+      description: |
+        ID for business domain of a service Consumer
+
+        * for SXM, the value is SXM
+        * for hondalink(android, ios, web), the value is HONDALINK CONNECT
+      schema:
+        type: string
+        example: "SXM"
+    hondaHeaderType.systemId:
+      name: hondaHeaderType.systemId
+      in: header
+      required: true
+      description: |
+        System ID for Service Consumer Channel
+        * for hondalink android, the value is com.honda.hondalink.cv_android
+        * for hondalink ios, the value is com.honda.hondalink.cv_ios
+        * for VTI, the value is com.honda.services.vti
+      schema:
+        type: string
+        example: "com.honda.hondalink.cv_ios"
+    hondaHeaderType.collectedTimeStamp:
+      name: hondaHeaderType.collectedTimeStamp
+      in: header
+      required: true
+      description: "The UTC Time, [RFC3339](https://www.ietf.org/rfc/rfc3339.txt) when the API client invokes this API. Pattern is: 'yyyy-MM-dd'T'HH:mm:ss.SSSXXX'"
+      schema:
+        type: string
+        example: "2019-01-01T14:02:41.548-05:00"
+    hondaHeaderType.country_code:
+      name: hondaHeaderType.country_code
+      in: header
+      required: true
+      description: "Country Code of User Account, available value [US | CA]"
+      schema:
+        type: string
+        minLength: 2
+        maxLength: 2
+        example: "US | CA"
+    hondaHeaderType.language_code:
+      name: hondaHeaderType.language_code
+      in: header
+      required: true
+      description: "Language Code from User Preference, available value [en | fr]"
+      schema:
+        type: string
+        minLength: 2
+        maxLength: 2
+        example: "en | fr"
+  responses:
+    #################################
+    #ErrorResponses
+    #################################
+    BasicSynchronousErrorResponse:
+      description: error
+      headers:
+        hondaHeaderType.version:
+          $ref: '#/components/headers/hondaHeaderType.version'
+        hondaHeaderType.responseTime:
+          $ref: '#/components/headers/hondaHeaderType.responseTime'
+        hondaHeaderType.messageId:
+          $ref: '#/components/headers/hondaHeaderType.messageId'
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BasicSynchronousErrorModel'
+    #################################
+    EmptySuccessResponse:
+      description: OK
+      headers:
+        hondaHeaderType.version:
+          $ref: '#/components/headers/hondaHeaderType.version'
+        hondaHeaderType.responseTime:
+          $ref: '#/components/headers/hondaHeaderType.responseTime'
+        hondaHeaderType.messageId:
+          $ref: '#/components/headers/hondaHeaderType.messageId'
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EmptySuccessResponse'
+    #################################
+    #################################
+  headers:
+    #################################
+    #Common Headers
+    #################################
+    Content-Type:
+      schema:
+        type: string
+        default: application/json
+        example: application/json
+    #################################
+    #Honda common response headers
+    #################################
+    hondaHeaderType.version:
+      description: api version
+      schema:
+        type: string
+        example: v1
+    hondaHeaderType.messageId:
+      description: Unique ID(UUID, RFC4122 Version 4), the hondaHeaderType.messageId that was specified in the request is returned.
+      schema:
+        type: string
+        example: "b9deb5c9-df3d-47c9-a815-e67d0957579d"
+    hondaHeaderType.responseTime:
+      description: UTC Time, RFC3339 Time when server send response for this request.
+      schema:
+        type: string
+        example: "2018-12-19T16:39:57-08:00"
+    #################################
+paths:
+  /onStar/vehicle/door/{command}:
+    post:
+      tags:
+        - Door service
+      summary: "[API Gateway URI: /onStar/location/async]"
+      description: API used send door lock/ unlock command to GMBO 
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/hondaHeaderType.version'
+        - $ref: '#/components/parameters/hondaHeaderType.messageId'
+        - $ref: '#/components/parameters/hondaHeaderType.siteId'
+        - $ref: '#/components/parameters/hondaHeaderType.businessId'
+        - $ref: '#/components/parameters/hondaHeaderType.systemId'
+        - $ref: '#/components/parameters/hondaHeaderType.collectedTimeStamp'
+        - $ref: '#/components/parameters/hondaHeaderType.country_code'
+        - $ref: '#/components/parameters/hondaHeaderType.language_code'
+        - $ref: '#/components/parameters/hondaHeaderType.userId'
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Content-Type'
+        - $ref: '#/components/parameters/command'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceRequestBody'
+  
+      responses:
+        200:
+          $ref: '#/components/responses/EmptySuccessResponse'
+        400:
+          $ref: '#/components/responses/BasicSynchronousErrorResponse'
+        500:
+          $ref: '#/components/responses/BasicSynchronousErrorResponse'
+
+  ################################################################################
